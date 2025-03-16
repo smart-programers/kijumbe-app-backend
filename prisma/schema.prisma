@@ -1,0 +1,240 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  kijumbe
+  admin
+}
+
+enum Frequency {
+  daily
+  weekly
+  biweekly
+  monthly
+}
+
+enum PaymentMethod {
+  sequential
+  random
+  byNeed
+  custom
+}
+
+enum groupStatus {
+  active
+  completed
+  cancelled
+}
+
+enum MemberRole {
+  admin
+  treasurer
+  member
+}
+
+enum JoinStatus {
+  original
+  lateJoiner
+  replacement
+}
+
+enum ContributionStatus {
+  pending
+  completed
+  late
+  missed
+}
+
+enum PayoutStatus {
+  scheduled
+  processing
+  completed
+  cancelled
+}
+
+enum RuleType {
+  latePenalty
+  missedPaymentPenalty
+  attendance
+  other
+}
+
+enum PaymentStatus {
+  pending
+  processing
+  completed
+  failed
+  cancelled
+}
+
+enum PaymentM {
+  mobileMoney
+  bankTransfer
+  cash
+  other
+}
+
+model User {
+  id          String    @id @default(cuid())
+  phoneNumber String?
+  firstName   String
+  lastName    String
+  email       String    @unique
+  photoUrl    String
+  role        UserRole  @default(kijumbe)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  member      Member[]
+  payment     Payment[]
+  receipt     Receipt[]
+}
+
+model Group {
+  id                 String            @id @default(cuid())
+  name               String
+  purpose            String
+  description        String
+  contributionAmount Float
+  frequency          Frequency         @default(daily)
+  startDate          DateTime
+  endDate            DateTime
+  memberLimit        Int
+  payoutMethod       PaymentMethod     @default(sequential)
+  status             groupStatus       @default(active)
+  createdBy          String
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  member             Member[]
+  contribution       Contribution[]
+  rule               Rule[]
+  payout             Payout[]
+  receipt            Receipt[]
+  upcomingPayment    UpcomingPayment[]
+  payment            Payment[]
+}
+
+model Member {
+  id                String         @id @default(cuid())
+  userId            String
+  user              User           @relation(fields: [userId], references: [id])
+  groupId           String
+  group             Group          @relation(fields: [groupId], references: [id])
+  joinedDate        DateTime       @default(now())
+  role              MemberRole     @default(member)
+  joinStatus        JoinStatus     @default(original)
+  isRemoved         Boolean        @default(false)
+  removedDate       DateTime?
+  contribution      Contribution[]
+  payout            Payout[]
+  hasPaidCatchUp    Boolean        @default(false)
+  hasReceivedPayout Boolean        @default(false)
+}
+
+model Contribution {
+  id            String             @id @default(cuid())
+  groupId       String
+  memberId      String
+  group         Group              @relation(fields: [groupId], references: [id])
+  member        Member             @relation(fields: [memberId], references: [id])
+  amount        Float
+  dueDate       DateTime
+  paidDate      DateTime
+  status        ContributionStatus @default(pending)
+  receiptId     String
+  paymentMethod String
+  penaltyAmount Float?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  payment       Payment[]
+}
+
+model Payout {
+  id            String       @id @default(cuid())
+  groupId       String
+  memberId      String
+  group         Group        @relation(fields: [groupId], references: [id])
+  member        Member       @relation(fields: [memberId], references: [id])
+  scheduledDate DateTime
+  processedDate DateTime
+  status        PayoutStatus @default(scheduled)
+  transactionId String
+  paymentMethod String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Rule {
+  id            String   @id @default(cuid())
+  groupId       String
+  group         Group    @relation(fields: [groupId], references: [id])
+  title         String
+  description   String
+  penaltyAmount Float
+  type          RuleType @default(other)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  groupId        String
+  group          Group         @relation(fields: [groupId], references: [id])
+  contributionId String
+  contribution   Contribution  @relation(fields: [contributionId], references: [id])
+  amount         Float
+  feeAmount      Float
+  dateInitiated  DateTime
+  dateCompleted  DateTime
+  status         PaymentStatus @default(pending)
+  method         PaymentM      @default(cash)
+  transactionId  String
+  receiptUrl     String
+  notes          String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  receipt        Receipt[]
+}
+
+model Receipt {
+  id            String   @id @default(cuid())
+  paymentId     String
+  payment       Payment  @relation(fields: [paymentId], references: [id])
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  groupId       String
+  group         Group    @relation(fields: [groupId], references: [id])
+  amount        Float
+  feeAmount     Float
+  date          DateTime
+  transactionId String
+  receiptNumber String
+  paymentMethod String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model UpcomingPayment {
+  id        String   @id @default(cuid())
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id])
+  amount    Float
+  dueDate   DateTime
+  isPaid    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
