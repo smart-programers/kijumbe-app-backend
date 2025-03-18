@@ -1,5 +1,5 @@
 import Elysia, { error } from "elysia";
-import { Auth } from "./auth";
+import { Auth } from "../../utils/auth";
 import { loginModel } from "./models";
 import jwt from "@elysiajs/jwt";
 
@@ -13,10 +13,10 @@ export const authentication = new Elysia({ prefix: "/authentication" })
   .post(
     "/login",
     async ({ body, jwt }) => {
-      const { email, password } = body;
+      const { email, otp } = body;
 
       const auth = new Auth();
-      const userId = await auth.Login(email, password);
+      const userId = await auth.Login(email, otp);
 
       const token = await jwt.sign({ id: userId });
 

@@ -2,5 +2,5 @@ import { t } from "elysia";
 
 export const loginModel = t.Object({
   email: t.String({ format: "email" }),
-  password: t.String({ minLength: 8, maxLength: 32 }),
+  otp: t.String({ minLength: 6, maxLength: 6 }),
 });
