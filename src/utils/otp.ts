@@ -30,7 +30,7 @@ export class OTP {
   }
 
   async getValidOtp(email: string) {
-    const validity = new Date(Date.now() - 10 * 1000);
+    const validity = new Date(Date.now() - 20 * 1000);
 
     const validOtp = await db.otp.findFirst({
       where: {
@@ -49,7 +49,7 @@ export class OTP {
   }
 
   async getValidOtpByOTP(otp: string): Promise<string> {
-    const validity = new Date(Date.now() - 10 * 1000);
+    const validity = new Date(Date.now() - 20 * 1000);
 
     const validOtp = await db.otp.findFirst({
       where: {
@@ -70,15 +70,34 @@ export class OTP {
   async sendOtp(email: string): Promise<string> {
     const otp = await this.create(email);
 
-    const mailer = new EkiliRelay(process.env.EKILI_API as string);
+    const payload = {
+      to: email,
+      subject: "OTP",
+      message: `Your OTP is ${otp}.`,
+      from: `From: ${process.env.EMAIL}`,
+      apikey: process.env.EKILI_API,
+    };
 
-    mailer.sendEmail(
-      email,
-      "OTP",
-      `Your OTP is ${otp}.`,
-      `From: senderName ${process.env.EMAIL}`,
-    );
+    try {
+      const response = await fetch("https://relay.ekilie.com/api/index.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    return "OTP sent Successfully";
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          `Failed to send OTP: ${data.message || response.statusText}`,
+        );
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error("Error sending OTP:", error.message);
+      throw error;
+    }
   }
 }

@@ -1,7 +1,8 @@
 import Elysia, { error } from "elysia";
 import { Auth } from "../../utils/auth";
-import { loginModel } from "./models";
+import { loginModel, registerModel } from "./models";
 import jwt from "@elysiajs/jwt";
+import { User } from "../../utils/user";
 
 export const authentication = new Elysia({ prefix: "/authentication" })
   .use(
@@ -24,5 +25,27 @@ export const authentication = new Elysia({ prefix: "/authentication" })
     },
     {
       body: loginModel,
+    },
+  )
+
+  .post(
+    "/register",
+    async ({ body }) => {
+      const { firstName, lastName, phoneNumber, email, photoUrl } = body;
+
+      const userObj = new User();
+
+      const user = await userObj.create(
+        firstName,
+        lastName,
+        phoneNumber,
+        email,
+        photoUrl,
+      );
+
+      return user;
+    },
+    {
+      body: registerModel,
     },
   );

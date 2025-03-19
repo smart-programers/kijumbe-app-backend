@@ -92,7 +92,7 @@ model User {
   firstName   String
   lastName    String
   email       String    @unique
-  photoUrl    String
+  photoUrl    String?
   role        UserRole  @default(kijumbe)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
