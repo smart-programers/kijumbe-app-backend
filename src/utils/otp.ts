@@ -2,6 +2,8 @@ import { error } from "elysia";
 import db from "../../prisma/client";
 import EkiliRelay from "ekilirelay";
 
+const VALIDITY_OTP = Number(process.env.VALIDITY_OTP) || 60;
+
 export class OTP {
   constructor() {}
 
@@ -30,7 +32,7 @@ export class OTP {
   }
 
   async getValidOtp(email: string) {
-    const validity = new Date(Date.now() - 20 * 1000);
+    const validity = new Date(Date.now() - VALIDITY_OTP * 1000);
 
     const validOtp = await db.otp.findFirst({
       where: {
@@ -49,7 +51,7 @@ export class OTP {
   }
 
   async getValidOtpByOTP(otp: string): Promise<string> {
-    const validity = new Date(Date.now() - 20 * 1000);
+    const validity = new Date(Date.now() - VALIDITY_OTP * 1000);
 
     const validOtp = await db.otp.findFirst({
       where: {
