@@ -275,6 +275,59 @@ export const group = new Elysia()
   )
 
   .get(
+    "/group-members/:id",
+    async ({ bearer, jwt, params }) => {
+      if (!bearer) {
+        return error(400, "Unauthorized");
+      }
+      let userId = "";
+      try {
+        const decoded: any = await jwt.verify(bearer);
+        userId = decoded.id;
+      } catch (err) {
+        console.error("JWT ERROR:", err);
+        return error(400, "BAD REQUEST");
+      }
+
+      const userAvailable = await db.user.findFirst({
+        where: {
+          id: userId,
+        },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+        },
+      });
+
+      if (!userAvailable) {
+        return error(400, "Unauthorized");
+      }
+
+      const { id } = params;
+
+      const group = new Group(id);
+
+      const groups = await group.getMembers();
+
+      return groups;
+    },
+    {
+      params: Param,
+      detail: {
+        tags: ["Group"],
+      },
+      error: ({ error }) => {
+        console.log(error);
+        return {
+          code: 500,
+          error: "Internal Server Error",
+        };
+      },
+    },
+  )
+
+  .get(
     "/groups",
     async ({ bearer, jwt }) => {
       if (!bearer) {

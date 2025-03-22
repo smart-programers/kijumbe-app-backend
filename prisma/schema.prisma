@@ -100,6 +100,7 @@ model User {
   payment     Payment[]
   receipt     Receipt[]
   Group       Group[]
+  addedBy     Member[]  @relation("addedBy")
 }
 
 model Group {
@@ -143,6 +144,8 @@ model Member {
   payout            Payout[]
   hasPaidCatchUp    Boolean        @default(false)
   hasReceivedPayout Boolean        @default(false)
+  entryUser         String
+  addedBy           User           @relation(fields: [entryUser], references: [id], name: "addedBy")
 }
 
 model Contribution {

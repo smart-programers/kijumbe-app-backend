@@ -187,4 +187,32 @@ export class Group {
 
     return rules;
   }
+
+  async getMembers() {
+    const members = await db.member.findMany({
+      where: {
+        groupId: this.id,
+      },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            id: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        group: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            purpose: true,
+          },
+        },
+      },
+    });
+
+    return members;
+  }
 }
