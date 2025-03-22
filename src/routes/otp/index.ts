@@ -15,5 +15,8 @@ export const Otp = new Elysia().post(
   },
   {
     body: otpModel,
+    detail: {
+      tags: ["Authentication"],
+    },
   },
 );

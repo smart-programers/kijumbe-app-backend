@@ -3,10 +3,14 @@ import { authentication } from "./routes/auth";
 import swagger from "@elysiajs/swagger";
 import cors from "@elysiajs/cors";
 import { Otp } from "./routes/otp";
+import { group } from "./routes/group";
+import { rule } from "./routes/rules";
 
 const app = new Elysia()
   .use(authentication)
   .use(Otp)
+  .use(group)
+  .use(rule)
   .use(swagger())
   .use(cors())
   .get("/", () => "Hello Elysia")

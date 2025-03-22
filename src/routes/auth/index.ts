@@ -25,6 +25,9 @@ export const authentication = new Elysia({ prefix: "/authentication" })
     },
     {
       body: loginModel,
+      detail: {
+        tags: ["Authentication"],
+      },
     },
   )
 
@@ -47,5 +50,8 @@ export const authentication = new Elysia({ prefix: "/authentication" })
     },
     {
       body: registerModel,
+      detail: {
+        tags: ["Authentication"],
+      },
     },
   );
