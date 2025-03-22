@@ -99,6 +99,7 @@ model User {
   member      Member[]
   payment     Payment[]
   receipt     Receipt[]
+  Group       Group[]
 }
 
 model Group {
@@ -123,6 +124,8 @@ model Group {
   receipt            Receipt[]
   upcomingPayment    UpcomingPayment[]
   payment            Payment[]
+  userId             String
+  user               User              @relation(fields: [userId], references: [id])
 }
 
 model Member {
