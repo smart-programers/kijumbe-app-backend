@@ -72,14 +72,20 @@ export class OTP {
 
   async sendOtp(email: string): Promise<string> {
     const otp = await this.create(email);
-    const user = Auth.getUser(email);
-    
-    const userName = user.firstName + " " + user.lastName;
+    const user = await db.user.findFirst({
+      where: {
+        email: email,
+      },
+    });
+
+    if (!user) {
+      throw error(400, "User Not Found");
+    }
 
     const payload = {
       to: email,
       subject: "Your Kijumbe App OTP",
-      message: OtpEmailTemplate(otp),
+      message: OtpEmailTemplate(String(otp), user.firstName || "User"),
       from: `From: KIJUMBE OTP <${process.env.EMAIL}>`,
       apikey: process.env.EKILI_API,
     };
