@@ -1,6 +1,5 @@
 import { error } from "elysia";
 import db from "../../prisma/client";
-import EkiliRelay from "ekilirelay";
 
 const VALIDITY_OTP = Number(process.env.VALIDITY_OTP) || 60;
 
@@ -74,9 +73,9 @@ export class OTP {
 
     const payload = {
       to: email,
-      subject: "OTP",
+      subject: "Your kijumbe OTP",
       message: `Your OTP is ${otp}.`,
-      from: `From: ${process.env.EMAIL}`,
+      from: `From: KIJUMBE OTP <${process.env.EMAIL}>`,
       apikey: process.env.EKILI_API,
     };
 
