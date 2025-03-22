@@ -27,4 +27,13 @@ export class Auth {
 
     return user.id;
   }
+
+  static async getUser(email: string) {
+    const user  = await db.user.findFirst({
+      where:{
+        email:email
+      }
+    });
+    return user;
+  }
 }

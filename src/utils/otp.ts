@@ -1,5 +1,7 @@
 import { error } from "elysia";
 import db from "../../prisma/client";
+import OtpEmailTemplate from "../lib/otp-email-template";
+import { Auth } from "./auth";
 
 const VALIDITY_OTP = Number(process.env.VALIDITY_OTP) || 60;
 
@@ -70,11 +72,14 @@ export class OTP {
 
   async sendOtp(email: string): Promise<string> {
     const otp = await this.create(email);
+    const user = Auth.getUser(email);
+    
+    const userName = user.firstName + " " + user.lastName;
 
     const payload = {
       to: email,
       subject: "Your Kijumbe App OTP",
-      message: `Your OTP is ${otp}.`,
+      message: OtpEmailTemplate(otp),
       from: `From: KIJUMBE OTP <${process.env.EMAIL}>`,
       apikey: process.env.EKILI_API,
     };
