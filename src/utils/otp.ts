@@ -73,7 +73,7 @@ export class OTP {
 
     const payload = {
       to: email,
-      subject: "Your kijumbe OTP",
+      subject: "Your Kijumbe App OTP",
       message: `Your OTP is ${otp}.`,
       from: `From: KIJUMBE OTP <${process.env.EMAIL}>`,
       apikey: process.env.EKILI_API,

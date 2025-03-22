@@ -1,5 +1,5 @@
-export default function OtpEmailTemplate(otp: string) {
-    return `
+export default function OtpEmailTemplate(otp: string, name: string) {
+  return `
       <div style="
         font-family: Arial, sans-serif; 
         text-align: center; 
@@ -14,7 +14,7 @@ export default function OtpEmailTemplate(otp: string) {
           border-radius: 8px; 
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         ">
-          <h1 style="color: #333;">Your Kijumbe App OTP</h1>
+          <h1 style="color: #333;">Hello, ${name}</h1>
           <p style="font-size: 20px; font-weight: bold; color: #007BFF;">${otp}</p>
           <p style="color: #555;">
             Use this One-Time Password (OTP) to complete your verification. 
@@ -26,5 +26,4 @@ export default function OtpEmailTemplate(otp: string) {
         </div>
       </div>
     `;
-  }
-  
+}
