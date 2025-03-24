@@ -85,6 +85,7 @@ model User {
   phoneNumber String?
   firstName   String
   lastName    String
+  password    String?
   email       String    @unique
   photoUrl    String?
   role        UserRole  @default(kijumbe)

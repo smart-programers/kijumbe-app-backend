@@ -1,8 +1,14 @@
 import Elysia, { error } from "elysia";
 import { Auth } from "../../utils/auth";
-import { loginModel, registerModel } from "./models";
+import {
+  loginModel,
+  loginPasswordModel,
+  registerModel,
+  registerPasswordModel,
+} from "./models";
 import jwt from "@elysiajs/jwt";
 import { User } from "../../utils/user";
+import { password } from "bun";
 
 export const authentication = new Elysia({ prefix: "/authentication" })
   .use(
@@ -12,7 +18,7 @@ export const authentication = new Elysia({ prefix: "/authentication" })
     }),
   )
   .post(
-    "/login",
+    "/login-otp",
     async ({ body, jwt }) => {
       const { email, otp } = body;
 
@@ -32,7 +38,54 @@ export const authentication = new Elysia({ prefix: "/authentication" })
   )
 
   .post(
+    "/login",
+    async ({ body, jwt }) => {
+      const { email, password } = body;
+
+      const auth = new Auth();
+      const userId = await auth.LoginWithPassword(email, password);
+
+      const token = await jwt.sign({ id: userId });
+
+      return token;
+    },
+    {
+      body: loginPasswordModel,
+      detail: {
+        tags: ["Authentication"],
+      },
+    },
+  )
+
+  .post(
     "/register",
+    async ({ body }) => {
+      const { firstName, lastName, phoneNumber, email, photoUrl, password } =
+        body;
+
+      const userObj = new User();
+
+      const user = await userObj.createWithPassword(
+        firstName,
+        lastName,
+        phoneNumber,
+        email,
+        photoUrl,
+        password,
+      );
+
+      return user;
+    },
+    {
+      body: registerPasswordModel,
+      detail: {
+        tags: ["Authentication"],
+      },
+    },
+  )
+
+  .post(
+    "/register-otp",
     async ({ body }) => {
       const { firstName, lastName, phoneNumber, email, photoUrl } = body;
 
