@@ -4,12 +4,21 @@ import bearer from "@elysiajs/bearer";
 import db from "../../../prisma/client";
 import { Group } from "../../utils/group";
 import { groupModel, Param } from "./models";
+import { keyGenerator } from "../../utils/generator";
+import { rateLimit } from "elysia-rate-limit";
 
 export const group = new Elysia()
   .use(
     jwt({
       name: "jwt",
       secret: process.env.JWT_SECRET as string,
+    }),
+  )
+  .use(
+    rateLimit({
+      scoping: "scoped",
+      duration: 200 * 1000,
+      generator: keyGenerator,
     }),
   )
   .use(bearer())

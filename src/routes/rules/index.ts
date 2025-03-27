@@ -4,10 +4,18 @@ import Elysia, { error } from "elysia";
 import db from "../../../prisma/client";
 import { Rule } from "../../utils/rule";
 import { Param, ruleModel } from "./models";
+import { rateLimit } from "elysia-rate-limit";
+import { keyGenerator } from "../../utils/generator";
 
 export const rule = new Elysia()
   .use(bearer())
-
+  .use(
+    rateLimit({
+      scoping: "scoped",
+      duration: 200 * 1000,
+      generator: keyGenerator,
+    }),
+  )
   .use(
     jwt({
       name: "jwt",

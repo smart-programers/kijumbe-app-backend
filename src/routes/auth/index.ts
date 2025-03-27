@@ -9,12 +9,21 @@ import {
 import jwt from "@elysiajs/jwt";
 import { User } from "../../utils/user";
 import { password } from "bun";
+import { rateLimit } from "elysia-rate-limit";
+import { keyGenerator } from "../../utils/generator";
 
 export const authentication = new Elysia({ prefix: "/authentication" })
   .use(
     jwt({
       name: "jwt",
       secret: process.env.JWT_SECRET as string,
+    }),
+  )
+  .use(
+    rateLimit({
+      scoping: "scoped",
+      duration: 200 * 1000,
+      generator: keyGenerator,
     }),
   )
   .post(

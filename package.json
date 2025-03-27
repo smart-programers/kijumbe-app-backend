@@ -12,7 +12,9 @@
     "@elysiajs/swagger": "^1.2.2",
     "@prisma/client": "^6.5.0",
     "ekilirelay": "^1.0.4",
-    "elysia": "latest"
+    "elysia": "latest",
+    "elysia-ip": "^1.0.8",
+    "elysia-rate-limit": "^4.3.0"
   },
   "devDependencies": {
     "bun-types": "latest",
