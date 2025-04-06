@@ -26,3 +26,4 @@ export const registerModel = t.Object({
   email: t.String(),
   photoUrl: t.String(),
 });
+

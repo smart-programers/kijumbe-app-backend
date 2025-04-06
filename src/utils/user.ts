@@ -22,7 +22,7 @@ export class User {
     });
 
     if (user) {
-      throw new Error("User Already Exist");
+      return { result: {}, status: 400, message: "User Already Exist" };
     }
 
     user = await db.user.create({
@@ -42,7 +42,7 @@ export class User {
       },
     });
 
-    return user;
+    return { result: user, status: 200, message: "User Created Successfully" };
   }
 
   async createWithPassword(
@@ -62,7 +62,7 @@ export class User {
     });
 
     if (user) {
-      throw new Error("User Already Exist");
+      return { result: {}, status: 400, message:"User Already Exist"};
     }
 
     const hashPassword = await Bun.password.hash(password);
@@ -84,6 +84,6 @@ export class User {
       },
     });
 
-    return user;
+    return { result: user, status: 200, message: "User Created Successfully" };
   }
 }

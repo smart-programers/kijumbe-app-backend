@@ -8,7 +8,7 @@ export class Auth {
     this.otp = new OTP();
   }
 
-  async Login(email: string, otp: string): Promise<string> {
+  async Login(email: string, otp: string): Promise<{ result: any, status: number, message: string }> {
     const user = await db.user.findFirst({
       where: {
         email: email,
@@ -22,13 +22,13 @@ export class Auth {
     const validOtp = await this.otp.getValidOtpByOTP(otp);
 
     if (!validOtp) {
-      throw error(400, "Incorrect Credentials");
+      return { result: {}, status: 400, message: "Incorrect Credentials" };
     }
 
-    return user.id;
+    return { result: user.id, status: 200, message: "Valid Otp" };
   }
 
-  async LoginWithPassword(email: string, password: string): Promise<string> {
+  async LoginWithPassword(email: string, password: string):Promise<{ result: any, status: number, message: string }>{
     const user = await db.user.findFirst({
       where: {
         email: email,
@@ -36,7 +36,7 @@ export class Auth {
     });
 
     if (!user) {
-      throw error(400, "User Not Found");
+      return { result: {}, status: 400, message: "User Not Found" };
     }
 
     const isMatch = await Bun.password.verify(
@@ -45,10 +45,10 @@ export class Auth {
     );
 
     if (!isMatch) {
-      throw error(400, "Incorrect Credentials");
+      return { result: {}, status: 400, message:"Incorrect Credentials"};
     }
 
-    return user.id;
+    return { result: user.id, status: 2000, message: "Password Match" };
   }
 
   static async getUser(email: string) {

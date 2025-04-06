@@ -32,11 +32,21 @@ export const authentication = new Elysia({ prefix: "/authentication" })
       const { email, otp } = body;
 
       const auth = new Auth();
-      const userId = await auth.Login(email, otp);
+      const result = await auth.Login(email, otp);
 
-      const token = await jwt.sign({ id: userId });
-
-      return token;
+      switch(result.status){
+        case 400:
+          return error(result.status, result.message)
+          break;
+          
+        case 200:
+          const token = await jwt.sign({ id: result.result });
+          return token
+          break;
+          
+        default:
+          return error(500, "Internal Server Error");
+      }
     },
     {
       body: loginModel,
@@ -52,11 +62,22 @@ export const authentication = new Elysia({ prefix: "/authentication" })
       const { email, password } = body;
 
       const auth = new Auth();
-      const userId = await auth.LoginWithPassword(email, password);
+      const result = await auth.LoginWithPassword(email, password);
+      
+      switch(result.status){
+        case 400:
+          return error(result.status, result.message)
+          break;
+          
+        case 200:
+          const token = await jwt.sign({ id: result.result });
+          return token
+          break;
+          
+        default:
+          return error(500, "Internal Server Error");
+      }
 
-      const token = await jwt.sign({ id: userId });
-
-      return token;
     },
     {
       body: loginPasswordModel,
@@ -74,7 +95,7 @@ export const authentication = new Elysia({ prefix: "/authentication" })
 
       const userObj = new User();
 
-      const user = await userObj.createWithPassword(
+      const result = await userObj.createWithPassword(
         firstName,
         lastName,
         phoneNumber,
@@ -83,7 +104,18 @@ export const authentication = new Elysia({ prefix: "/authentication" })
         password,
       );
 
-      return user;
+      switch(result.status){
+        case 400:
+          return error(result.status, result.message)
+          break;
+          
+        case 200:
+          return result.result
+          break;
+          
+        default:
+          return error(500, "Internal Server Error");
+      }
     },
     {
       body: registerPasswordModel,
@@ -100,7 +132,7 @@ export const authentication = new Elysia({ prefix: "/authentication" })
 
       const userObj = new User();
 
-      const user = await userObj.create(
+      const result = await userObj.create(
         firstName,
         lastName,
         phoneNumber,
@@ -108,7 +140,18 @@ export const authentication = new Elysia({ prefix: "/authentication" })
         photoUrl,
       );
 
-      return user;
+      switch(result.status){
+        case 400:
+          return error(result.status, result.message)
+          break;
+          
+        case 200:
+          return result.result
+          break;
+          
+        default:
+          return error(500, "Internal Server Error");
+      }
     },
     {
       body: registerModel,
