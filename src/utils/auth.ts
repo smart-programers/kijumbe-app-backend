@@ -48,7 +48,7 @@ export class Auth {
       return { result: {}, status: 400, message:"Incorrect Credentials"};
     }
 
-    return { result: user.id, status: 2000, message: "Password Match" };
+    return { result: user.id, status: 200, message: "Password Match" };
   }
 
   static async getUser(email: string) {
