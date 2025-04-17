@@ -18,7 +18,7 @@ export const groupModel = t.Object({
   payoutMethod: t.Union([
     t.Literal("sequential"),
     t.Literal("random"),
-    t.Literal("byNedd"),
+    t.Literal("byNeed"),
     t.Literal("custom"),
   ]),
   startDate: t.Date(),
