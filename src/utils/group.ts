@@ -10,7 +10,7 @@ export class Group {
 
   async all(userId: string) {
     const result =
-      await db.$queryRaw`SELECT i.* FROM "Group" i INNER JOIN "Member" m ON (m."groupId"=i.id) INNER JOIN "User" u ON (u.id=m."userId") WHERE u.id=${userId} OR i."userId"=${userId}`;
+      await db.$queryRaw`SELECT i.* FROM "Group" i LEFT JOIN "Member" m ON (m."groupId"=i.id) LEFT JOIN "User" u ON (u.id=m."userId") WHERE u.id=${userId} OR i."userId"=${userId}`;
 
     return result;
   }
