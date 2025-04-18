@@ -99,6 +99,8 @@ export class Group {
         },
       },
     });
+    
+    return group
   }
 
   async create(
