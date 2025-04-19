@@ -7,6 +7,7 @@ import { group } from "./routes/group";
 import { rule } from "./routes/rules";
 import { member } from "./routes/member";
 import { ip } from "elysia-ip";
+import { user } from "./routes/user";
 
 const app = new Elysia()
   .use(ip())
@@ -15,6 +16,7 @@ const app = new Elysia()
   .use(group)
   .use(rule)
   .use(member)
+  .use(user)
   .use(swagger())
   .use(cors())
   .get("/", () => "Hello Elysia")
