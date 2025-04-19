@@ -291,6 +291,7 @@ export class User {
       
         SELECT
           u.group_name,
+          u.group_id,
           u.frequency,
           u.next_due_date,
           u.expected_amount,
