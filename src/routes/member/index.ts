@@ -66,8 +66,21 @@ export const member = new Elysia()
         userAvailable.id,
         isRemoved,
       );
+      
+      switch(members.status){
+        case 200:
+          return members.result
+          break;
+          
+        case 400:
+          return members.message
+          break;
+          
+        default:
+          return "Internal Server Error"
+          break;
+      }
 
-      return members;
     },
     {
       body: membermodel,
