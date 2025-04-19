@@ -46,7 +46,9 @@ export const user = new Elysia()
           id: true,
           email: true,
           firstName:true,
-          lastName:true
+          lastName:true,
+          photoUrl:true,
+          phoneNumber:true
         },
       });
 
