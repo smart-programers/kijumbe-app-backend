@@ -73,11 +73,11 @@ export const member = new Elysia()
           break;
           
         case 400:
-          return members.message
+          return error(members.status,members.message)
           break;
           
         default:
-          return "Internal Server Error"
+          return error(500,"Internal Server Error")
           break;
       }
 
