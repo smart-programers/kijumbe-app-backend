@@ -10,7 +10,7 @@
     "@elysiajs/cors": "^1.2.0",
     "@elysiajs/jwt": "^1.2.0",
     "@elysiajs/swagger": "^1.2.2",
-    "@prisma/client": "^6.5.0",
+    "@prisma/client": "^6.6.0",
     "ekilirelay": "^1.0.4",
     "elysia": "latest",
     "elysia-ip": "^1.0.8",
@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "bun-types": "latest",
-    "prisma": "^6.5.0"
+    "prisma": "^6.6.0"
   },
   "module": "src/index.js"
 }

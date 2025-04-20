@@ -13,8 +13,14 @@ export const membermodel = t.Object({
     t.Literal("replacement"),
   ]),
   isRemoved: t.Optional(t.Boolean()),
-  userId: t.String(),
 });
+
+export const requestModel = t.Object({
+  status:t.Union([
+    t.Literal("approved"),
+    t.Literal("rejected"),
+  ])
+})
 
 export const Param = t.Object({
   id: t.String(),
