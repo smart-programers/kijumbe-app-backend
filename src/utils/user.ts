@@ -236,7 +236,7 @@ export class User {
             g."endDate"
           FROM "Group" g
           JOIN "Member" m ON g.id = m."groupId"
-          WHERE m."userId" = $1 AND m."isRemoved" = false AND m.status='approved'
+          WHERE m."userId" = $1 AND m."isRemoved" = false AND m.status='approved' AND g.status='active'
         ),
       
         upcoming_dates AS (

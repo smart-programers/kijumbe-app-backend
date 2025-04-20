@@ -33,6 +33,8 @@ export class Group {
       include: {
         member: {
           select: {
+            status:true,
+            isRemoved:true,
             user: {
               select: {
                 id: true,
@@ -132,6 +134,18 @@ export class Group {
         userId: createdBy,
       },
     });
+    
+    await db.member.create({
+      data:{
+        groupId: group?.id,
+        role: "admin",
+        joinStatus:"original",
+        status:"approved",
+        isRemoved: false,
+        userId: createdBy,
+        entryUser: createdBy,
+      }
+    })
 
     return group;
   }
