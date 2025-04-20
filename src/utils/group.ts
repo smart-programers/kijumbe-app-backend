@@ -10,7 +10,7 @@ export class Group {
 
   async all(userId: string) {
     const result =
-      await db.$queryRaw`SELECT i.* FROM "Group" i LEFT JOIN "Member" m ON (m."groupId"=i.id AND m."isRemoved"=false) LEFT JOIN "User" u ON (u.id=m."userId") WHERE u.id=${userId} OR i."userId"=${userId}`;
+      await db.$queryRaw`SELECT i.* FROM "Group" i LEFT JOIN "Member" m ON (m."groupId"=i.id AND m."isRemoved"=false AND m.status='approved') LEFT JOIN "User" u ON (u.id=m."userId") WHERE u.id=${userId} OR i."userId"=${userId}`;
 
     return result;
   }
