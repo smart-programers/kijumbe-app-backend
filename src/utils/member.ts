@@ -71,6 +71,7 @@ export class Member {
     const admin = await db.member.findFirst({
       where:{
         id:creator,
+        groupId:groupId,
         role:"admin",
         isRemoved:false,
         status:"approved"
@@ -177,18 +178,7 @@ export class Member {
 
   async delete(userId:string) {
     
-    const remover = await db.member.findFirst({
-      where:{
-        id:userId,
-        role:"admin",
-        isRemoved:false,
-        status:"approved"
-      }
-    })
-    
-    if(!remover){
-       return { result:null,status:400,message:"Only Admin can Remove User From Group"}
-    }
+  
     
     const groupFromMember = await db.member.findFirst({
       where:{
@@ -208,6 +198,20 @@ export class Member {
     
     if(!group){
        return { result:null,status:400,message:"Group Does Not Exist"} 
+    }
+    
+    const remover = await db.member.findFirst({
+      where:{
+        id:userId,
+        groupId:group.id,
+        role:"admin",
+        isRemoved:false,
+        status:"approved"
+      }
+    })
+    
+    if(!remover){
+       return { result:null,status:400,message:"Only Admin can Remove User From Group"}
     }
     
     if(group.userId===this.id){
