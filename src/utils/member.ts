@@ -49,6 +49,62 @@ export class Member {
 
     return { result: member, status: 200, message: "Member Added Successfully" };
   }
+  
+  async adminAdd(
+    groupId: string,
+    role: string,
+    joinStatus: string,
+    userId: string,
+    creator: string,
+    isRemoved?: boolean,
+  ) {
+    const group = await db.group.findFirst({
+      where:{
+        id:groupId
+      }
+    })
+    
+    if(!group){
+      return { result:null,status:400,message:"Group Not Found"}
+    }
+    
+    const admin = await db.member.findFirst({
+      where:{
+        id:creator,
+        role:"admin",
+        isRemoved:false,
+        status:"approved"
+      }
+    })
+    
+    if(!admin){
+       return { result:null,status:400,message:"Only Admin Can Add User to Group"}
+    }
+    const currentMemberCount = await db.member.count({
+       where: {
+         groupId: groupId,
+         isRemoved: false, 
+         status:"approved"
+       },
+     });
+    
+    if (currentMemberCount >= group.memberLimit) {
+      return { result:null,status:400,message:"Group Limit Reached"}
+    }
+    const member = await db.member.create({
+      data: {
+        groupId: groupId,
+        role: role as MemberRole,
+        joinStatus: joinStatus as JoinStatus,
+        isRemoved: isRemoved,
+        userId: userId,
+        entryUser: creator,
+        status:"approved"
+      },
+    });
+
+    return { result: member, status: 200, message: "Member Added Successfully" };
+  }
 
   async edit(
     groupId: string,
@@ -119,13 +175,54 @@ export class Member {
      return { result: updatedMember, status: 200, message: `Member ${status} Successfully` };
   }
 
-  async delete() {
-    const member = await db.member.delete({
+  async delete(userId:string) {
+    
+    const remover = await db.member.findFirst({
+      where:{
+        id:userId,
+        role:"admin",
+        isRemoved:false,
+        status:"approved"
+      }
+    })
+    
+    if(!remover){
+       return { result:null,status:400,message:"Only Admin can Remove User From Group"}
+    }
+    
+    const groupFromMember = await db.member.findFirst({
+      where:{
+        id:this.id
+      }
+    })
+    
+    if(!groupFromMember){
+         return { result:null,status:400,message:"Member Does Not Exist"}
+    }
+    
+    const group = await db.group.findFirst({
+      where:{
+        id:groupFromMember.id
+      }
+    })
+    
+    if(!group){
+       return { result:null,status:400,message:"Group Does Not Exist"} 
+    }
+    
+    if(group.userId===this.id){
+     return { result:null,status:400,message:"Cannot Remove Group Creator"}  
+    }
+    
+    const member = await db.member.update({
       where: {
         id: this.id,
       },
+      data:{
+        isRemoved:true
+      }
     });
 
-    return member;
+    return { result: member, status: 200, message: "Removed Successfully" };
   }
 }
