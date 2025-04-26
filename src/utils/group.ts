@@ -3,9 +3,11 @@ import db from "../../prisma/client";
 
 export class Group {
   public id: string;
+  public userId:string
 
-  constructor(id?: string) {
+  constructor(id?: string,userId?:string) {
     this.id = id as string;
+    this.userId = userId as string;
   }
 
   async all(userId: string) {
@@ -45,84 +47,207 @@ return result
   }
 
   async getGroupById() {
-    const group = await db.group.findFirst({
-      where: {
-        id: this.id,
-      },
-      include: {
-        member: {
-          select: {
-            status:true,
-            isRemoved:true,
-            user: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                photoUrl: true,
-                phoneNumber: true,
-                payment: true,
-              },
-            },
-          },
-        },
-        rule: {
-          select: {
-            title: true,
-            description: true,
-            penaltyAmount: true,
-            type: true,
-            isActive: true,
-          },
-        },
-        payment: {
-          select: {
-            user: {
-              select: {
-                firstName: true,
-                lastName: true,
-                id: true,
-              },
-            },
-            contribution: {
-              select: {
-                member: {
-                  select: {
-                    user: {
-                      select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                      },
-                    },
-                  },
-                },
-                dueDate: true,
-                paidDate: true,
-                penaltyAmount: true,
-                amount: true,
-                status: true,
-                paymentMethod: true,
-              },
-            },
-            dateCompleted: true,
-            status: true,
-            method: true,
-            amount: true,
-            feeAmount: true,
-            receiptUrl: true,
-            transactionId: true,
-            notes: true,
-            dateInitiated: true,
-            receipt: true,
-          },
-        },
-      },
-    });
-    
-    return group
+    const result = await db.$queryRawUnsafe(`
+    WITH member_data AS (
+      SELECT
+        m."groupId",
+        m."userId",
+        m.status AS member_status,
+        m."isRemoved",
+        m.role,
+        u.id AS user_id,
+        u."firstName",
+        u."lastName",
+        u."photoUrl",
+        u."phoneNumber"
+      FROM "Member" m
+             LEFT JOIN "User" u ON u.id = m."userId"
+    ),
+         group_data AS (
+           SELECT
+             g.id AS group_id,
+             g.name,
+             g.purpose,
+             g.description,
+             g."contributionAmount",
+             g.frequency,
+             g."startDate",
+             g."endDate",
+             g."memberLimit",
+             g."payoutMethod",
+             g.status AS group_status,
+             g."createdBy",
+             g."createdAt",
+             g."updatedAt",
+             g."userId" AS group_user_id
+           FROM "Group" g
+           WHERE g.id = $1
+         )
+    SELECT
+      gd.*,
+      (
+        SELECT json_agg(
+                   json_build_object(
+                       'status', md.member_status,
+                       'isRemoved', md."isRemoved",
+                       'role', md.role,
+                       'user', json_build_object(
+                           'id', md.user_id,
+                           'firstName', md."firstName",
+                           'lastName', md."lastName",
+                           'photoUrl', md."photoUrl",
+                           'phoneNumber', md."phoneNumber"
+                               )
+                   )
+               )
+        FROM member_data md
+        WHERE md."groupId" = gd.group_id
+      ) AS members,
+      (
+        SELECT json_agg(
+                   json_build_object(
+                       'status', md.member_status,
+                       'isRemoved', md."isRemoved",
+                       'role', md.role,
+                       'user', json_build_object(
+                           'id', md.user_id,
+                           'firstName', md."firstName",
+                           'lastName', md."lastName",
+                           'photoUrl', md."photoUrl",
+                           'phoneNumber', md."phoneNumber"
+                               )
+                   )
+               )
+        FROM member_data md
+        WHERE md."groupId" = gd.group_id AND md.member_status = 'approved' AND md."isRemoved" = false
+      ) AS approved_members,
+      (
+        SELECT json_agg(
+                   json_build_object(
+                       'status', md.member_status,
+                       'isRemoved', md."isRemoved",
+                       'role', md.role,
+                       'user', json_build_object(
+                           'id', md.user_id,
+                           'firstName', md."firstName",
+                           'lastName', md."lastName",
+                           'photoUrl', md."photoUrl",
+                           'phoneNumber', md."phoneNumber"
+                               )
+                   )
+               )
+        FROM member_data md
+        WHERE md."groupId" = gd.group_id AND md.member_status = 'pending'
+      ) AS waiting_requests,
+      (
+        SELECT json_agg(
+                   json_build_object(
+                       'status', md.member_status,
+                       'isRemoved', md."isRemoved",
+                       'role', md.role,
+                       'user', json_build_object(
+                           'id', md.user_id,
+                           'firstName', md."firstName",
+                           'lastName', md."lastName",
+                           'photoUrl', md."photoUrl",
+                           'phoneNumber', md."phoneNumber"
+                               )
+                   )
+               )
+        FROM member_data md
+        WHERE md."groupId" = gd.group_id AND md.member_status = 'rejected'
+      ) AS rejected_members,
+      (
+        SELECT CAST(COUNT(*) AS TEXT)
+        FROM member_data md
+        WHERE md."groupId" = gd.group_id AND md.member_status = 'approved' AND md."isRemoved" = false
+      ) AS approved_member_count,
+      (
+        SELECT md.role
+        FROM member_data md
+        WHERE md."groupId" = gd.group_id AND md.user_id = $2
+           LIMIT 1
+      ) AS current_user_role,
+            (
+              SELECT json_agg(
+                json_build_object(
+                  'title', r.title,
+                  'description', r.description,
+                  'penaltyAmount', r."penaltyAmount",
+                  'type', r.type,
+                  'isActive', r."isActive"
+                )
+              )
+              FROM "Rule" r
+              WHERE r."groupId" = gd.group_id
+            ) AS rules,
+            (
+              SELECT json_agg(
+                json_build_object(
+                  'user', json_build_object(
+                    'id', pu.id,
+                    'firstName', pu."firstName",
+                    'lastName', pu."lastName"
+                  ),
+                  'contribution', json_build_object(
+                    'memberUser', json_build_object(
+                      'id', cu.id,
+                      'firstName', cu."firstName",
+                      'lastName', cu."lastName",
+                      'email', cu.email
+                    ),
+                    'dueDate', c."dueDate",
+                    'paidDate', c."paidDate",
+                    'penaltyAmount', c."penaltyAmount",
+                    'amount', c.amount,
+                    'status', c.status,
+                    'paymentMethod', c."paymentMethod"
+                  ),
+                  'dateCompleted', p."dateCompleted",
+                  'status', p.status,
+                  'method', p.method,
+                  'amount', p.amount,
+                  'feeAmount', p."feeAmount",
+                  'receiptUrl', p."receiptUrl",
+                  'transactionId', p."transactionId",
+                  'notes', p.notes,
+                  'dateInitiated', p."dateInitiated",
+                  'receipts', (
+                    SELECT json_agg(
+                      json_build_object(
+                        'id', r.id,
+                        'amount', r.amount,
+                        'feeAmount', r."feeAmount",
+                        'date', r.date,
+                        'transactionId', r."transactionId",
+                        'receiptNumber', r."receiptNumber",
+                        'paymentMethod', r."paymentMethod"
+                      )
+                    )
+                    FROM "Receipt" r
+                    WHERE r."paymentId" = p.id
+                  )
+                )
+              )
+              FROM "Payment" p
+              LEFT JOIN "User" pu ON pu.id = p."userId"
+              LEFT JOIN "Contribution" c ON c.id = p."contributionId"
+              LEFT JOIN "Member" cm ON cm.id = c."memberId"
+              LEFT JOIN "User" cu ON cu.id = cm."userId"
+              WHERE p."groupId" = gd.group_id
+            ) AS payments
+    FROM group_data gd;
+  `, this.id, this.userId);
+
+    // @ts-ignore
+    if (result && result.length > 0) {
+      // @ts-ignore
+      return result[0];
+    }
+      return null;
+
   }
+
 
   async create(
     name: string,

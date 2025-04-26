@@ -468,7 +468,7 @@ export const group = new Elysia()
 
       const { id } = params;
 
-      const group = new Group(id);
+      const group = new Group(id,userAvailable?.id);
 
       const groups = await group.getGroupById();
 
