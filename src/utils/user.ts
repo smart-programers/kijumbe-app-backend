@@ -86,6 +86,30 @@ export class User {
 
     return { result: user, status: 200, message: "User Created Successfully" };
   }
+
+  async edit(
+      firstName: string,
+      lastName: string,
+      phoneNumber: string,
+      email: string,
+      photoUrl: string | null,
+
+  ){
+    const user = await db.user.update({
+      where:{
+        id:this.id
+      },
+      data:{
+        firstName:firstName,
+        lastName:lastName,
+        photoUrl:photoUrl,
+        phoneNumber:phoneNumber,
+        email:email
+      }
+    })
+
+    return user
+  }
   
   async getUser(){
     const userId = this.id; 

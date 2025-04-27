@@ -11,10 +11,13 @@
     "@elysiajs/jwt": "^1.2.0",
     "@elysiajs/swagger": "^1.2.2",
     "@prisma/client": "^6.6.0",
+    "@types/mime-types": "^2.1.4",
     "ekilirelay": "^1.0.4",
     "elysia": "latest",
     "elysia-ip": "^1.0.8",
-    "elysia-rate-limit": "^4.3.0"
+    "elysia-rate-limit": "^4.3.0",
+    "mime-types": "^3.0.1",
+    "nanoid": "^5.1.5"
   },
   "devDependencies": {
     "bun-types": "latest",
