@@ -299,6 +299,7 @@ export const member = new Elysia()
       const { status } = body;
 
       const { id } = params;
+    
       const member = new Member(id);
 
       const members = await member.update(

@@ -12,29 +12,40 @@ export class Group {
 
   async all(userId: string) {
     const result = await db.$queryRaw`
-      SELECT 
+      SELECT DISTINCT
         i.*,
-        g.members,
-        g.group_status
+        COALESCE(g.members, 0) AS members,
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM "Member" m
+            WHERE m."groupId" = i.id AND m."userId" = ${userId} AND m."status" = 'pending'
+          ) THEN 'pending'
+          WHEN COALESCE(g.group_status, 'active') = 'pending' THEN 'pending'
+          ELSE 'active'
+          END AS group_status
       FROM "Group" i
-      LEFT JOIN (
-        SELECT 
+             LEFT JOIN (
+        SELECT
           m."groupId",
           COUNT(m.id)::int AS members,
-          CASE 
+          CASE
             WHEN MAX(m."status") = 'pending' THEN 'pending'
             ELSE 'active'
-          END AS group_status
+            END AS group_status
         FROM "Member" m
         WHERE m."isRemoved" = false
+          AND m."status" = 'approved'
         GROUP BY m."groupId"
       ) g ON g."groupId" = i.id
-      LEFT JOIN "User" u ON u.id = i."userId"
-      WHERE u.id = ${userId} OR i."userId" = ${userId}
+             LEFT JOIN "User" u ON u.id = i."userId"
+             LEFT JOIN "Member" m ON m."groupId" = i.id
+      WHERE u.id = ${userId} OR i."userId" = ${userId} OR m."userId" = ${userId}
     `;
 
-return result
+    return result
   }
+
 
   async groups(userId: string) {
     const groups = await db.group.findMany({
@@ -59,7 +70,8 @@ return result
         u."firstName",
         u."lastName",
         u."photoUrl",
-        u."phoneNumber"
+        u."phoneNumber",
+      m.id
       FROM "Member" m
              LEFT JOIN "User" u ON u.id = m."userId"
     ),
@@ -96,8 +108,10 @@ return result
                            'firstName', md."firstName",
                            'lastName', md."lastName",
                            'photoUrl', md."photoUrl",
-                           'phoneNumber', md."phoneNumber"
+                           'phoneNumber', md."phoneNumber",
+                           'member_id', md.id
                                )
+                      
                    )
                )
         FROM member_data md
@@ -114,8 +128,10 @@ return result
                            'firstName', md."firstName",
                            'lastName', md."lastName",
                            'photoUrl', md."photoUrl",
-                           'phoneNumber', md."phoneNumber"
+                           'phoneNumber', md."phoneNumber",
+                           'member_id', md.id
                                )
+                      
                    )
                )
         FROM member_data md
@@ -132,7 +148,8 @@ return result
                            'firstName', md."firstName",
                            'lastName', md."lastName",
                            'photoUrl', md."photoUrl",
-                           'phoneNumber', md."phoneNumber"
+                           'phoneNumber', md."phoneNumber",
+                           'member_id', md.id
                                )
                    )
                )
@@ -150,7 +167,8 @@ return result
                            'firstName', md."firstName",
                            'lastName', md."lastName",
                            'photoUrl', md."photoUrl",
-                           'phoneNumber', md."phoneNumber"
+                           'phoneNumber', md."phoneNumber",
+                           'member_id', md.id
                                )
                    )
                )
@@ -338,14 +356,52 @@ return result
     });
   }
 
-  async getGroupRules() {
-    const rules = await db.rule.findMany({
+  async getGroupRules(userId: string) {
+    const group = await db.group.findUnique({
       where: {
-        groupId: this.id,
+        id: this.id,
+      },
+      include: {
+        rule: true,
+        member: {
+          where: {
+            userId: userId,
+            isRemoved:false,
+          },
+          select: {
+            id: true,
+            role:true
+          },
+        },
       },
     });
 
-    return rules;
+
+    return group;
+  }
+
+  async getGroupsNotMember(userId: string) {
+    const groups = await db.group.findMany({
+      where: {
+        status:"active",
+        member: {
+          none: {
+            userId: userId,
+          },
+        },
+      },
+      include: {
+        rule: true,
+        member:{
+          where:{
+            status:"approved",
+            isRemoved:false
+          }
+        }
+      },
+    });
+
+    return groups;
   }
 
   async getMembers() {
