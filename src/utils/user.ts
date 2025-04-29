@@ -95,18 +95,33 @@ export class User {
       photoUrl: string | null,
 
   ){
-    const user = await db.user.update({
-      where:{
-        id:this.id
-      },
-      data:{
-        firstName:firstName,
-        lastName:lastName,
-        photoUrl:photoUrl,
-        phoneNumber:phoneNumber,
-        email:email
-      }
-    })
+    let user
+    if(photoUrl) {
+      user = await db.user.update({
+        where: {
+          id: this.id
+        },
+        data: {
+          firstName: firstName,
+          lastName: lastName,
+          photoUrl: photoUrl,
+          phoneNumber: phoneNumber,
+          email: email
+        }
+      })
+    }else{
+      user = await db.user.update({
+        where: {
+          id: this.id
+        },
+        data: {
+          firstName: firstName,
+          lastName: lastName,
+          phoneNumber: phoneNumber,
+          email: email
+        }
+      })
+    }
 
     return user
   }
