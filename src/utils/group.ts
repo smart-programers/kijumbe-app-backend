@@ -21,6 +21,11 @@ export class Group {
             FROM "Member" m
             WHERE m."groupId" = i.id AND m."userId" = ${userId} AND m."status" = 'pending'
           ) THEN 'pending'
+          WHEN EXISTS (
+            SELECT 1
+            FROM "Member" m
+            WHERE m."groupId" = i.id AND m."userId" = ${userId} AND m."status" = 'approved' AND m."isRemoved"='true'
+          ) THEN 'removed'
           WHEN COALESCE(g.group_status, 'active') = 'pending' THEN 'pending'
           ELSE 'active'
           END AS group_status
@@ -91,10 +96,27 @@ export class Group {
              g."createdBy",
              g."createdAt",
              g."updatedAt",
-             g."userId" AS group_user_id
+             g."userId" AS group_user_id,
+             ARRAY(
+               SELECT payment_date
+      FROM generate_series(
+        GREATEST(g."startDate", CURRENT_DATE),
+        g."endDate",
+        CASE
+          WHEN g.frequency = 'daily' THEN INTERVAL '1 day'
+          WHEN g.frequency = 'weekly' THEN INTERVAL '1 week'
+          WHEN g.frequency = 'biweekly' THEN INTERVAL '2 weeks'
+          WHEN g.frequency = 'monthly' THEN INTERVAL '1 month'
+          ELSE INTERVAL '1 day'
+        END
+      ) AS payment_date
+      ORDER BY payment_date
+      LIMIT 20
+    ) AS upcoming_payments
            FROM "Group" g
            WHERE g.id = $1
          )
+
     SELECT
       gd.*,
       (

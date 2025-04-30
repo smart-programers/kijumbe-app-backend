@@ -26,6 +26,10 @@ export const Param = t.Object({
   id: t.String(),
 });
 
+export const LeftModel = t.Object({
+  groupId: t.String(),
+});
+
 export const adminModel=t.Object({
   groupId: t.String(),
   role: t.Union([

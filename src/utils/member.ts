@@ -229,4 +229,40 @@ export class Member {
 
     return { result: member, status: 200, message: "Removed Successfully" };
   }
+
+  async left(userId:string,groupId:string) {
+
+    const member = await db.member.findFirst({
+      where:{
+        userId:userId,
+        groupId:groupId
+      }
+    })
+
+    if(!member){
+      return { result:null,status:400,message:"Member Does Not Exist"}
+    }
+
+    const group = await db.group.findFirst({
+      where:{
+        id:member.groupId
+      }
+    })
+
+    if(!group){
+      return { result:null,status:400,message:"Group Does Not Exist"}
+    }
+
+
+    const memberLeft = await db.member.update({
+      where: {
+        id: member.id,
+      },
+      data:{
+        isRemoved:true
+      }
+    });
+
+    return { result: memberLeft, status: 200, message: "Removed Successfully" };
+  }
 }
