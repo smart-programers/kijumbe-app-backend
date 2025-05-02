@@ -26,22 +26,28 @@ docker-compose build --no-cache
 docker-compose up
 
 ```
+### Recreate Container
 ```
 docker-compose down
 docker-compose up -d --force-recreate
 ```
-
+### Restart Docker Nginx
 ``` 
 docker compose restart nginx
 ```
+Set Host Level nginx Config to Route port 8080 to local domain
 ``` 
 sudo rm /etc/nginx/sites-enabled/kijumbe
 sudo rm /etc/nginx/sites-available/kijumbe
 ```
 
-Update the Containers
+### Update the Containers
 ``` 
 docker-compose up -d --build
 ```
+### Open Database in Docker
+``` 
+docker exec -it kijumbe-app-backend_db_1 psql -U kijumbe -d kijumbe
 
+```
 Open http://localhost:3000/ with your browser to see the result.
