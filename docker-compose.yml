@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # PostgreSQL service
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: kijumbe          # PostgreSQL user
+      POSTGRES_PASSWORD: 123456    # PostgreSQL password
+      POSTGRES_DB: kijumbe        # Database name
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"               # Expose PostgreSQL on port 5433
+    networks:
+      - bun-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kijumbe"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Bun app instance 1
+  bun_app1:
+    build: .
+    container_name: bun_app1
+    command: ["./server"]  # 🛠️ Required for distroless
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      EKILI_API: ${EKILI_API}
+      EMAIL: ${EMAIL}
+      VALIDITY_OTP: ${VALIDITY_OTP}
+    env_file:
+      - .env   # Ensure .env file is loaded here
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "3000"
+    networks:
+      - bun-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Bun app instance 2
+  bun_app2:
+    build: .
+    container_name: bun_app2
+    command: ["./server"]  # 🛠️ Required for distroless
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      EKILI_API: ${EKILI_API}
+      EMAIL: ${EMAIL}
+      VALIDITY_OTP: ${VALIDITY_OTP}
+    env_file:
+      - .env   # Ensure .env file is loaded here
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "3000"
+    networks:
+      - bun-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # NGINX load balancer
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/kijumbe.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - bun_app1
+      - bun_app2
+    networks:
+      - bun-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+
+networks:
+  bun-network:
+    driver: bridge

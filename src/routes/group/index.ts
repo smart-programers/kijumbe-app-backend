@@ -521,7 +521,7 @@ export const group = new Elysia()
       const group = new Group(id,userAvailable?.id);
 
       const groups = await group.getGroupById();
-     
+
       return groups;
     },
     {
