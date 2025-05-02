@@ -50,4 +50,10 @@ docker-compose up -d --build
 docker exec -it kijumbe-app-backend_db_1 psql -U kijumbe -d kijumbe
 
 ```
+
+### To use Round Robin Remove ip_hash in nginx/kijumbe.conf
+To Test the Round Robin
+``` 
+for i in {1..20}; do curl http://kijumbe.app.backend/health; echo ""; done
+```
 Open http://localhost:3000/ with your browser to see the result.

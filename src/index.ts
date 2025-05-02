@@ -22,6 +22,10 @@ const app = new Elysia()
     .use(swagger())
     .use(cors())
     .get("/", () => "Hello Elysia")
+    .get("/health", () => ({
+        status: "ok",
+        instance: process.env.INSTANCE_ID || "unknown"
+    }))
     .get("/ip", ({ip}) => ip)
     .listen(3000);
 
