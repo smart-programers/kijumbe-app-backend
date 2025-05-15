@@ -9,6 +9,8 @@ import {member} from "./routes/member";
 import {ip} from "elysia-ip";
 import {user} from "./routes/user";
 import {fileUpload} from "./routes/upload";
+import {payment} from "./routes/payment";
+
 
 const app = new Elysia()
     .use(ip())
@@ -21,6 +23,7 @@ const app = new Elysia()
     .use(fileUpload)
     .use(swagger())
     .use(cors())
+    .use(payment)
     .get("/", () => "Hello Elysia")
     .get("/health", () => ({
         status: "ok",

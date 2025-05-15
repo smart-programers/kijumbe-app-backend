@@ -12,6 +12,7 @@
     "@elysiajs/swagger": "^1.2.2",
     "@prisma/client": "^6.6.0",
     "@types/mime-types": "^2.1.4",
+    "axios": "^1.9.0",
     "ekilirelay": "^1.0.4",
     "elysia": "latest",
     "elysia-ip": "^1.0.8",

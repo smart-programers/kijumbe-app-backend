@@ -163,9 +163,10 @@ model Contribution {
   member        Member             @relation(fields: [memberId], references: [id])
   amount        Float
   dueDate       DateTime
-  paidDate      DateTime
+  paidDate      DateTime?
   status        ContributionStatus @default(pending)
   receiptId     String
+  receipt       Receipt @relation(fields: [receiptId],references: [id])
   paymentMethod String
   penaltyAmount Float?
   createdAt     DateTime           @default(now())
@@ -207,15 +208,15 @@ model Payment {
   user           User          @relation(fields: [userId], references: [id])
   groupId        String
   group          Group         @relation(fields: [groupId], references: [id])
-  contributionId String
-  contribution   Contribution  @relation(fields: [contributionId], references: [id])
+  contributionId String?
+  contribution   Contribution?  @relation(fields: [contributionId], references: [id])
   amount         Float
   feeAmount      Float
   dateInitiated  DateTime
-  dateCompleted  DateTime
+  dateCompleted  DateTime?
   status         PaymentStatus @default(pending)
   method         PaymentM      @default(cash)
-  transactionId  String
+  transactionId  String?
   receiptUrl     String
   notes          String
   createdAt      DateTime      @default(now())
@@ -239,6 +240,8 @@ model Receipt {
   paymentMethod String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  contribution Contribution[]
 }
 
 model UpcomingPayment {
