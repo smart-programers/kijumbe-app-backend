@@ -22,6 +22,9 @@ export class Payment {
         const externalId = `contribution-${Date.now()}`;
         const {payUrl, token} = process.env
 
+        let message='Malipo Hayajakamilika';
+
+
         const phone = phoneNumber.startsWith('+255') ? `0${phoneNumber.slice(4)}` : phoneNumber;
 
         const payload = {
@@ -41,69 +44,73 @@ export class Payment {
             }
         );
 
-        console.log("PalmPesa response:", response.data);
+        // console.log("PalmPesa response:", response.data);
 
         const responseData = response.data.data?.[0] || {};
         const transactionId = responseData.transid || externalId;
         const receiptNumber = responseData.order_id || externalId;
-        const status = (responseData.status || "pending").toLowerCase();
+        const status = (responseData.payment_status || "pending").toLowerCase();
 
-        const payment = await db.payment.create({
-            data: {
-                groupId: groupId,
-                userId: userId,
-                amount: amount,
-                feeAmount: feeAmount,
-                dateInitiated: new Date(),
-                status: status,
-                method: "mobileMoney",
-                receiptUrl: receiptNumber,
-                notes,
-            },
-        });
+        if(status==='completed') {
+            const payment = await db.payment.create({
+                data: {
+                    groupId: groupId,
+                    userId: userId,
+                    amount: amount,
+                    feeAmount: feeAmount,
+                    dateInitiated: new Date(),
+                    status: status,
+                    method: "mobileMoney",
+                    receiptUrl: receiptNumber,
+                    notes,
+                },
+            });
 
-        const receipt = await db.receipt.create({
-            data: {
-                userId: userId,
-                paymentId: payment.id,
-                groupId: groupId,
-                amount: amount,
-                feeAmount: feeAmount,
-                date: new Date(),
-                transactionId: transactionId,
-                receiptNumber: receiptNumber,
-                paymentMethod: "mobileMoney",
-            },
-        });
+            const receipt = await db.receipt.create({
+                data: {
+                    userId: userId,
+                    paymentId: payment.id,
+                    groupId: groupId,
+                    amount: amount,
+                    feeAmount: feeAmount,
+                    date: new Date(),
+                    transactionId: transactionId,
+                    receiptNumber: receiptNumber,
+                    paymentMethod: "mobileMoney",
+                },
+            });
 
-        const member = await db.member.findFirst({
-            where: {
-                userId: userId,
-                groupId: groupId,
-                isRemoved: false,
-                status: 'approved',
-            },
-        });
+            const member = await db.member.findFirst({
+                where: {
+                    userId: userId,
+                    groupId: groupId,
+                    isRemoved: false,
+                    status: 'approved',
+                },
+            });
 
-        if (!member) {
-            throw new Error("User is not an approved member of the group.");
+            if (!member) {
+                throw new Error("User is not an approved member of the group.");
+            }
+
+            const contribution = await db.contribution.create({
+                data: {
+                    groupId: groupId,
+                    memberId: member.id,
+                    amount: amount,
+                    dueDate: date,
+                    status: status,
+                    receiptId: receipt.id,
+                    paymentMethod: "mobileMoney",
+                },
+            });
+
+            message = 'Malipo Yamekamilika'
         }
-
-        const contribution = await db.contribution.create({
-            data: {
-                groupId: groupId,
-                memberId: member.id,
-                amount: amount,
-                dueDate: date,
-                status: status,
-                receiptId: receipt.id,
-                paymentMethod: "mobileMoney",
-            },
-        });
 
         return {
             status: response.data.status ?? "unknown",
-            message: response.data.message ?? "No message provided",
+            message: message,
             transactionId,
             receiptNumber,
         };
